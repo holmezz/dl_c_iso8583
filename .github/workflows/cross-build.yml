@@ -23,10 +23,6 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: sudo apt update && sudo apt install -y gcc g++ cmake make
 
-      - name: Install Dependencies (MacOS)
-        if: matrix.os == 'macos-latest'
-        run: brew install cmake
-
       - name: Install Dependencies (Windows)
         if: matrix.os == 'windows-latest'
         run: choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System'
@@ -94,7 +90,7 @@ jobs:
           qemu-system-x86_64 -enable-kvm -cpu host -m 2048 -smp 2 \
           -drive file=freebsd-14.2.qcow2,format=qcow2 \
           -net user,hostfwd=tcp::10022-:22 -net nic \
-          -nographic -daemonize
+          -daemonize
           sleep 30
 
       - name: Install Dependencies in FreeBSD VM
