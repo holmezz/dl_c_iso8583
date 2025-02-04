@@ -33,6 +33,10 @@ jobs:
 
       - name: Configure and Build
         run: |
+          if [ "$RUNNER_OS" = "macOS" ]; then
+            export CFLAGS="-Wno-pointer-sign -Wno-implicit-function-declaration"
+            export CXXFLAGS="-Wno-pointer-sign -Wno-implicit-function-declaration"
+          fi
           cmake -B build
           cmake --build build --config Release
 
