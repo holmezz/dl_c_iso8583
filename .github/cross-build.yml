@@ -9,7 +9,6 @@ on:
   pull_request:
   workflow_dispatch:
 
-
 jobs:
   build:
     strategy:
@@ -43,6 +42,26 @@ jobs:
           name: binaries-${{ matrix.os }}
           path: build/*
 
+  build-windows-mingw:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v3
+
+      - name: Install MinGW
+        run: choco install mingw --force
+
+      - name: Configure and Build with MinGW
+        run: |
+          cmake -G "MinGW Makefiles" -B build-mingw
+          cmake --build build-mingw --config Release
+
+      - name: Upload Windows MinGW Build
+        uses: actions/upload-artifact@v3
+        with:
+          name: windows-mingw-binaries
+          path: build-mingw/iso8583.dll
+
   build-freebsd:
     runs-on: ubuntu-latest
     container:
@@ -68,7 +87,7 @@ jobs:
           path: build-freebsd/libiso8583.so
 
   release:
-    needs: [build, build-freebsd]
+    needs: [build, build-windows-mingw, build-freebsd]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
     permissions:
@@ -82,6 +101,11 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           path: artifacts
+
+      - name: Generate Version Number
+        id: version
+        shell: bash
+        run: echo "VERSION=$(echo ${{ github.ref_name }} | sed 's/v//')" >> $GITHUB_ENV
 
       - name: Generate Changelog
         id: changelog
@@ -98,6 +122,7 @@ jobs:
           echo "EOF" >> $GITHUB_ENV
 
       - name: Create GitHub Release
+        shell: bash
         uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -106,13 +131,14 @@ jobs:
             artifacts/binaries-ubuntu-latest/libiso8583.so
             artifacts/binaries-macos-latest/libiso8583.dylib
             artifacts/binaries-windows-latest/iso8583.dll
+            artifacts/windows-mingw-binaries/iso8583.dll
             artifacts/freebsd-binaries/libiso8583.so
           draft: true
           tag_name: ${{ github.ref }}
-          name: "Release ${{ github.ref_name }}"
+          name: "Release ${{ env.VERSION }}"
           fail_on_unmatched_files: true
           body: |
-            ## Release ${{ github.ref_name }}
+            ## Release ${{ env.VERSION }}
             
             ### Changelog
             ${{ env.CHANGELOG }}
@@ -120,5 +146,6 @@ jobs:
             ### Artifacts
             - Linux: `libiso8583.so`
             - MacOS: `libiso8583.dylib`
-            - Windows: `iso8583.dll`
+            - Windows (MSVC): `iso8583.dll`
+            - Windows (MinGW): `iso8583.dll`
             - FreeBSD: `libiso8583.so`
