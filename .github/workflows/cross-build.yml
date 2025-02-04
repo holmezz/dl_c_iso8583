@@ -77,50 +77,61 @@ jobs:
       - name: Checkout Source Code
         uses: actions/checkout@v3
 
-      - name: Install QEMU and FreeBSD Image
+      - name: Install QEMU and Tools
         run: |
           sudo apt update
-          sudo apt install -y qemu-system-x86 qemu-utils
+          sudo apt install -y qemu-system-x86 qemu-utils libguestfs-tools
+
+      - name: Download FreeBSD 14.2 QCOW2 Image
+        run: |
           wget -O freebsd-14.2.qcow2.xz https://download.freebsd.org/releases/VM-IMAGES/14.2-RELEASE/amd64/Latest/FreeBSD-14.2-RELEASE-amd64.qcow2.xz
-          xz -d freebsd-14.2.qcow2.xz  # Entpacken
-          qemu-img resize freebsd-14.2.qcow2 +10G
+          xz -d freebsd-14.2.qcow2.xz
+
+      - name: Mount QCOW2 Image and Set Root Password
+        run: |
+          sudo modprobe nbd max_part=8
+          sudo qemu-nbd --connect=/dev/nbd0 freebsd-14.2.qcow2
+          sudo mount /dev/nbd0p2 /mnt
+
+          echo 'root:$6$rounds=4096$A8E/9Gk/$J1NUZ/j.TM3Q6ypCipXtZ9HL3UQUv1S' | sudo tee -a /mnt/etc/master.passwd
+
+          sudo sed -i 's/#PermitRootLogin no/PermitRootLogin yes/' /mnt/etc/ssh/sshd_config
+          sudo sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /mnt/etc/ssh/sshd_config
+
+          sudo umount /mnt
+          sudo qemu-nbd --disconnect /dev/nbd0
 
       - name: Start FreeBSD 14.2 VM
         run: |
-          qemu-system-x86_64 -cpu max -m 2048 -smp 2 \
+          qemu-system-x86_64 -accel tcg -cpu max -m 2048 -smp 2 \
           -drive file=freebsd-14.2.qcow2,format=qcow2 \
           -net user,hostfwd=tcp::10022-:22 -net nic \
           -display none -daemonize
-          
-          echo "Waiting for SSH to become available..."
+          sleep 30
+
+      - name: Wait for SSH to be ready
+        run: |
           for i in {1..30}; do
-            if nc -z localhost 10022; then
-              echo "SSH is up!"
+            if sshpass -p "freebsd" ssh -o StrictHostKeyChecking=no -p 10022 root@localhost "echo 'SSH ready'"; then
+              echo "SSH is now accepting connections!"
               break
             fi
-            echo "SSH not available yet, retrying in 5s..."
+            echo "SSH not ready yet, retrying in 5s..."
             sleep 5
           done
 
       - name: Install Dependencies in FreeBSD VM
         run: |
-          ssh -o StrictHostKeyChecking=no -p 10022 root@localhost 'pkg update && pkg install -y clang cmake make'
+          sshpass -p "freebsd" ssh -o StrictHostKeyChecking=no -p 10022 root@localhost 'pkg update && pkg install -y clang cmake make'
 
       - name: Configure and Build in FreeBSD VM
         run: |
           scp -P 10022 -o StrictHostKeyChecking=no -r . root@localhost:/root/project
-          ssh -o StrictHostKeyChecking=no -p 10022 root@localhost 'cd /root/project && cmake -B build-freebsd && cmake --build build-freebsd --config Release'
+          sshpass -p "freebsd" ssh -o StrictHostKeyChecking=no -p 10022 root@localhost 'cd /root/project && cmake -B build-freebsd && cmake --build build-freebsd --config Release'
 
       - name: Fetch Build Artifacts from FreeBSD VM
         run: |
           scp -P 10022 -o StrictHostKeyChecking=no root@localhost:/root/project/build-freebsd/libiso8583.so .
-          mv libiso8583.so build-freebsd/
-
-      - name: Upload FreeBSD Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: freebsd-binaries
-          path: build-freebsd/libiso8583.so
 
   release:
     needs: [build, build-windows-mingw, build-freebsd]
