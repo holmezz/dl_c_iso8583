@@ -105,7 +105,10 @@ jobs:
       - name: Generate Version Number
         id: version
         shell: bash
-        run: echo "VERSION=$(echo ${{ github.ref_name }} | sed 's/v//')" >> $GITHUB_ENV
+        run: |
+          BASE_VERSION="0.0.4"
+          DATE=$(date +'%Y%m%d')
+          echo "VERSION=${BASE_VERSION}-${DATE}" >> $GITHUB_ENV
 
       - name: Generate Changelog
         id: changelog
