@@ -85,13 +85,14 @@ jobs:
         run: |
           sudo apt update
           sudo apt install -y qemu-system-x86 qemu-utils
-          wget -O freebsd-14.img https://download.freebsd.org/releases/amd64/amd64/ISO-IMAGES/14.0/FreeBSD-14.0-RELEASE-amd64.qcow2
-          qemu-img resize freebsd-14.img +10G
+          wget -O freebsd-14.2.qcow2.xz https://download.freebsd.org/releases/VM-IMAGES/14.2-RELEASE/amd64/Latest/FreeBSD-14.2-RELEASE-amd64.qcow2.xz
+          xz -d freebsd-14.2.qcow2.xz  # Entpacken
+          qemu-img resize freebsd-14.2.qcow2 +10G
 
-      - name: Start FreeBSD 14 VM
+      - name: Start FreeBSD 14.2 VM
         run: |
           qemu-system-x86_64 -enable-kvm -cpu host -m 2048 -smp 2 \
-          -drive file=freebsd-14.img,format=qcow2 \
+          -drive file=freebsd-14.2.qcow2,format=qcow2 \
           -net user,hostfwd=tcp::10022-:22 -net nic \
           -nographic -daemonize
           sleep 30
