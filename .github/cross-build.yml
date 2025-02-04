@@ -107,8 +107,8 @@ jobs:
         shell: bash
         run: |
           BASE_VERSION="0.0.4"
-          DATE=$(date +'%Y%m%d')
-          echo "VERSION=${BASE_VERSION}-${DATE}" >> $GITHUB_ENV
+          BUILD_NUMBER=$(git rev-list --count HEAD)
+          echo "VERSION=${BASE_VERSION}-build.${BUILD_NUMBER}" >> $GITHUB_ENV
 
       - name: Generate Changelog
         id: changelog
