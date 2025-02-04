@@ -90,7 +90,7 @@ jobs:
           qemu-system-x86_64 -cpu max -m 2048 -smp 2 \
           -drive file=freebsd-14.2.qcow2,format=qcow2 \
           -net user,hostfwd=tcp::10022-:22 -net nic \
-          -daemonize
+          -display none -daemonize
           sleep 30
 
       - name: Install Dependencies in FreeBSD VM
