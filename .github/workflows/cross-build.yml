@@ -91,7 +91,16 @@ jobs:
           -drive file=freebsd-14.2.qcow2,format=qcow2 \
           -net user,hostfwd=tcp::10022-:22 -net nic \
           -display none -daemonize
-          sleep 30
+          
+          echo "Waiting for SSH to become available..."
+          for i in {1..30}; do
+            if nc -z localhost 10022; then
+              echo "SSH is up!"
+              break
+            fi
+            echo "SSH not available yet, retrying in 5s..."
+            sleep 5
+          done
 
       - name: Install Dependencies in FreeBSD VM
         run: |
