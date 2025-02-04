@@ -74,6 +74,10 @@ jobs:
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Needed for proper changelog generation
+      
       - name: Download All Build Artifacts
         uses: actions/download-artifact@v3
         with:
@@ -81,7 +85,17 @@ jobs:
 
       - name: Generate Changelog
         id: changelog
-        run: echo "CHANGELOG=$(git log $(git describe --tags --abbrev=0)..HEAD --pretty=format:'- %s' | tr '\n' '\n')" >> $GITHUB_ENV
+        shell: bash
+        run: |
+          LAST_TAG=$(git describe --tags --abbrev=0 || echo "")
+          if [ -z "$LAST_TAG" ]; then
+            CHANGELOG=$(git log --pretty=format:'- %s')
+          else
+            CHANGELOG=$(git log ${LAST_TAG}..HEAD --pretty=format:'- %s')
+          fi
+          echo "CHANGELOG<<EOF" >> $GITHUB_ENV
+          echo "$CHANGELOG" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
@@ -89,9 +103,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           files: |
-            artifacts/binaries-ubuntu-latest/*
-            artifacts/binaries-macos-latest/*
-            artifacts/binaries-windows-latest/*
+            artifacts/binaries-ubuntu-latest/libiso8583.so
+            artifacts/binaries-macos-latest/libiso8583.dylib
+            artifacts/binaries-windows-latest/iso8583.dll
             artifacts/freebsd-binaries/libiso8583.so
           draft: true
           tag_name: ${{ github.ref }}
@@ -99,6 +113,12 @@ jobs:
           fail_on_unmatched_files: true
           body: |
             ## Release ${{ github.ref_name }}
-
-            **New Features & Fixes**
+            
+            ### Changelog
             ${{ env.CHANGELOG }}
+            
+            ### Artifacts
+            - Linux: `libiso8583.so`
+            - MacOS: `libiso8583.dylib`
+            - Windows: `iso8583.dll`
+            - FreeBSD: `libiso8583.so`
