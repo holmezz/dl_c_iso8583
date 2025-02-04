@@ -37,7 +37,7 @@ jobs:
           cmake --build build --config Release
 
       - name: Upload Build Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: binaries-${{ matrix.os }}
           path: build/*
@@ -57,7 +57,7 @@ jobs:
           cmake --build build-mingw --config Release
 
       - name: Upload Windows MinGW Build
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: windows-mingw-binaries
           path: build-mingw/iso8583.dll
@@ -81,7 +81,7 @@ jobs:
           cmake --build build-freebsd --config Release
 
       - name: Upload FreeBSD Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: freebsd-binaries
           path: build-freebsd/libiso8583.so
