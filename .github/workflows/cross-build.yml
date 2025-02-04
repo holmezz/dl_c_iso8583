@@ -87,7 +87,7 @@ jobs:
 
       - name: Start FreeBSD 14.2 VM
         run: |
-          qemu-system-x86_64 -enable-kvm -cpu host -m 2048 -smp 2 \
+          qemu-system-x86_64 -cpu max -m 2048 -smp 2 \
           -drive file=freebsd-14.2.qcow2,format=qcow2 \
           -net user,hostfwd=tcp::10022-:22 -net nic \
           -daemonize
