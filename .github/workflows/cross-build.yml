@@ -35,14 +35,14 @@ jobs:
             export CFLAGS="-Wno-pointer-sign -Wno-implicit-function-declaration"
             export CXXFLAGS="-Wno-pointer-sign -Wno-implicit-function-declaration"
           fi
-          cmake -B build -DBUILD_SHARED_LIBS=ON
+          cmake -B build -DBUILD_SHARED_LIBS=ON -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
           cmake --build build --config Release
 
       - name: Configure and Build (Windows)
         if: runner.os == 'Windows'
         shell: cmd
         run: |
-          cmake -B build
+          cmake -B build -DBUILD_SHARED_LIBS=ON
           cmake --build build --config Release
 
       - name: Upload Build Artifact
@@ -65,73 +65,14 @@ jobs:
           cmake -G "MinGW Makefiles" -B build-mingw -DBUILD_SHARED_LIBS=ON
           cmake --build build-mingw --config Release
 
+      - name: Debug: Check MinGW Build Directory
+        run: ls -R build-mingw
+
       - name: Upload Windows MinGW Build
         uses: actions/upload-artifact@v4
         with:
           name: windows-mingw-binaries
           path: build-mingw/iso8583.dll
-
-  # build-freebsd:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout Source Code
-  #       uses: actions/checkout@v3
-
-  #     - name: Install QEMU and Tools
-  #       run: |
-  #         sudo apt update
-  #         sudo apt install -y qemu-system-x86 qemu-utils libguestfs-tools
-
-  #     - name: Download FreeBSD 14.2 QCOW2 Image
-  #       run: |
-  #         wget -O freebsd-14.2.qcow2.xz https://download.freebsd.org/releases/VM-IMAGES/14.2-RELEASE/amd64/Latest/FreeBSD-14.2-RELEASE-amd64.qcow2.xz
-  #         xz -d freebsd-14.2.qcow2.xz
-
-  #     - name: Mount QCOW2 Image and Set Root Password
-  #       run: |
-  #         sudo modprobe nbd max_part=8
-  #         sudo qemu-nbd --connect=/dev/nbd0 freebsd-14.2.qcow2
-  #         sudo mount /dev/nbd0p2 /mnt
-
-  #         echo 'root:$6$rounds=4096$A8E/9Gk/$J1NUZ/j.TM3Q6ypCipXtZ9HL3UQUv1S' | sudo tee -a /mnt/etc/master.passwd
-
-  #         sudo sed -i 's/#PermitRootLogin no/PermitRootLogin yes/' /mnt/etc/ssh/sshd_config
-  #         sudo sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /mnt/etc/ssh/sshd_config
-
-  #         sudo umount /mnt
-  #         sudo qemu-nbd --disconnect /dev/nbd0
-
-  #     - name: Start FreeBSD 14.2 VM
-  #       run: |
-  #         qemu-system-x86_64 -accel tcg -cpu max -m 2048 -smp 2 \
-  #         -drive file=freebsd-14.2.qcow2,format=qcow2 \
-  #         -net user,hostfwd=tcp::10022-:22 -net nic \
-  #         -display none -daemonize
-  #         sleep 30
-
-  #     - name: Wait for SSH to be ready
-  #       run: |
-  #         for i in {1..30}; do
-  #           if sshpass -p "freebsd" ssh -o StrictHostKeyChecking=no -p 10022 root@localhost "echo 'SSH ready'"; then
-  #             echo "SSH is now accepting connections!"
-  #             break
-  #           fi
-  #           echo "SSH not ready yet, retrying in 5s..."
-  #           sleep 5
-  #         done
-
-  #     - name: Install Dependencies in FreeBSD VM
-  #       run: |
-  #         sshpass -p "freebsd" ssh -o StrictHostKeyChecking=no -p 10022 root@localhost 'pkg update && pkg install -y clang cmake make'
-
-  #     - name: Configure and Build in FreeBSD VM
-  #       run: |
-  #         scp -P 10022 -o StrictHostKeyChecking=no -r . root@localhost:/root/project
-  #         sshpass -p "freebsd" ssh -o StrictHostKeyChecking=no -p 10022 root@localhost 'cd /root/project && cmake -B build-freebsd && cmake --build build-freebsd --config Release'
-
-  #     - name: Fetch Build Artifacts from FreeBSD VM
-  #       run: |
-  #         scp -P 10022 -o StrictHostKeyChecking=no root@localhost:/root/project/build-freebsd/libiso8583.so .
 
   release:
     needs: [build, build-windows-mingw]
@@ -181,7 +122,6 @@ jobs:
             artifacts/binaries-macos-latest/libiso8583.dylib
             artifacts/binaries-windows-latest/iso8583.dll
             artifacts/windows-mingw-binaries/iso8583.dll
-            artifacts/freebsd-binaries/libiso8583.so
           draft: true
           tag_name: ${{ github.ref }}
           name: "Release ${{ env.VERSION }}"
@@ -197,4 +137,3 @@ jobs:
             - MacOS: `libiso8583.dylib`
             - Windows (MSVC): `iso8583.dll`
             - Windows (MinGW): `iso8583.dll`
-            - FreeBSD: `libiso8583.so`

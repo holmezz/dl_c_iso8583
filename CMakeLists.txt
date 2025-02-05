@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.3)
 
 project("DL ISO-8583")
 
-
 include_directories(
     dl_c_common
     dl_c_iso8583
@@ -26,8 +25,10 @@ set(dl_c_iso8583_src
 
 add_library(dl_c_iso8583 SHARED ${dl_c_iso8583_src})
 
+target_link_libraries(dl_c_iso8583 dl_c_common)
+
 add_executable(benchmark benchmark.c)
-target_link_libraries (benchmark dl_c_iso8583 dl_c_common)
+target_link_libraries(benchmark dl_c_iso8583 dl_c_common)
 
 add_executable(demo demo.c)
-target_link_libraries (demo dl_c_iso8583 dl_c_common)
+target_link_libraries(demo dl_c_iso8583 dl_c_common)
