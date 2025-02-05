@@ -45,9 +45,6 @@ jobs:
           cmake -B build -DBUILD_SHARED_LIBS=ON
           cmake --build build --config Release
 
-      - name: Debug Build Output
-        run: ls -R build/
-
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -113,9 +110,6 @@ jobs:
           echo "CHANGELOG<<EOF" >> $GITHUB_ENV
           echo "$CHANGELOG" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
-      
-      - name: Debug Artifacts
-        run: ls -R artifacts/
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
