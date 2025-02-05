@@ -65,9 +65,6 @@ jobs:
           cmake -G "MinGW Makefiles" -B build-mingw -DBUILD_SHARED_LIBS=ON
           cmake --build build-mingw --config Release
 
-      # - name: Debug - Check MinGW Build Directory
-      #   run: ls -R build-mingw
-
       - name: Upload Windows MinGW Build
         uses: actions/upload-artifact@v4
         with:
