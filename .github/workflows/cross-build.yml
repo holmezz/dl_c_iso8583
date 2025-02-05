@@ -117,10 +117,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           files: |
-            artifacts/binaries-ubuntu-latest/libiso8583.so
-            artifacts/binaries-macos-latest/libiso8583.dylib
-            artifacts/binaries-windows-latest/iso8583.dll
-            artifacts/windows-mingw-binaries/iso8583.dll
+            artifacts/binaries-ubuntu-latest/libdl_c_iso8583.so
+            artifacts/binaries-macos-latest/libdl_c_iso8583.dylib
+            artifacts/binaries-windows-latest/dl_c_iso8583.dll
+            artifacts/windows-mingw-binaries/libdl_c_iso8583.dll
           draft: true
           tag_name: ${{ github.ref }}
           name: "Release ${{ env.VERSION }}"
@@ -132,7 +132,7 @@ jobs:
             ${{ env.CHANGELOG }}
             
             ### Artifacts
-            - Linux: `libiso8583.so`
-            - MacOS: `libiso8583.dylib`
-            - Windows (MSVC): `iso8583.dll`
-            - Windows (MinGW): `iso8583.dll`
+            - Linux: `libdl_c_iso8583.so`
+            - MacOS: `libdl_c_iso8583.dylib`
+            - Windows (MSVC): `dl_c_iso8583.dll`
+            - Windows (MinGW): `libdl_c_iso8583.dll`
