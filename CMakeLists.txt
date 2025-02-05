@@ -15,7 +15,7 @@ set(dl_c_common_src
     dl_c_common/dl_time.c
     dl_c_common/dl_timer.c)
 
-add_library(dl_c_common ${dl_c_common_src})
+add_library(dl_c_common SHARED ${dl_c_common_src})
 
 set(dl_c_iso8583_src
     dl_c_iso8583/dl_iso8583.c
@@ -24,7 +24,7 @@ set(dl_c_iso8583_src
     dl_c_iso8583/dl_iso8583_defs_1993.c
     dl_c_iso8583/dl_iso8583_fields.c)
 
-add_library(dl_c_iso8583 ${dl_c_iso8583_src})
+add_library(dl_c_iso8583 SHARED ${dl_c_iso8583_src})
 
 add_executable(benchmark benchmark.c)
 target_link_libraries (benchmark dl_c_iso8583 dl_c_common)

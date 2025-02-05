@@ -35,7 +35,7 @@ jobs:
             export CFLAGS="-Wno-pointer-sign -Wno-implicit-function-declaration"
             export CXXFLAGS="-Wno-pointer-sign -Wno-implicit-function-declaration"
           fi
-          cmake -B build
+          cmake -B build -DBUILD_SHARED_LIBS=ON
           cmake --build build --config Release
 
       - name: Configure and Build (Windows)
@@ -62,7 +62,7 @@ jobs:
 
       - name: Configure and Build with MinGW
         run: |
-          cmake -G "MinGW Makefiles" -B build-mingw
+          cmake -G "MinGW Makefiles" -B build-mingw -DBUILD_SHARED_LIBS=ON
           cmake --build build-mingw --config Release
 
       - name: Upload Windows MinGW Build
