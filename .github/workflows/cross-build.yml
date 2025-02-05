@@ -125,7 +125,7 @@ jobs:
           files: |
             artifacts/binaries-ubuntu-latest/libdl_c_iso8583.so
             artifacts/binaries-macos-latest/libdl_c_iso8583.dylib
-            artifacts/binaries-windows-latest/dl_c_iso8583.dll
+            artifacts/binaries-windows-latest/Release/dl_c_iso8583.dll
             artifacts/windows-mingw-binaries/libdl_c_iso8583.dll
           draft: true
           tag_name: ${{ github.ref }}
