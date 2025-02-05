@@ -65,14 +65,16 @@ jobs:
           cmake -G "MinGW Makefiles" -B build-mingw -DBUILD_SHARED_LIBS=ON
           cmake --build build-mingw --config Release
 
-      - name: Debug - Check MinGW Build Directory
-        run: ls -R build-mingw
+      # - name: Debug - Check MinGW Build Directory
+      #   run: ls -R build-mingw
 
       - name: Upload Windows MinGW Build
         uses: actions/upload-artifact@v4
         with:
           name: windows-mingw-binaries
-          path: build-mingw/iso8583.dll
+          path: |
+            build-mingw/libdl_c_iso8583.dll
+            build-mingw/libdl_c_common.dll
 
   release:
     needs: [build, build-windows-mingw]

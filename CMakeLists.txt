@@ -7,6 +7,8 @@ include_directories(
     dl_c_iso8583
 )
 
+set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+
 set(dl_c_common_src
     dl_c_common/dl_mem.c
     dl_c_common/dl_output.c
