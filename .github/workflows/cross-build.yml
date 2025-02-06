@@ -1,12 +1,6 @@
 name: Cross-Platform Builds
 
 on:
-  push:
-    branches:
-      - master
-    tags:
-      - 'v*'
-  pull_request:
   workflow_dispatch:
 
 jobs:
@@ -16,7 +10,7 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - name: Checkout Source Code
+      - name: Checkout source code
         uses: actions/checkout@v3
 
       - name: Install Dependencies (Linux)
@@ -45,7 +39,7 @@ jobs:
           cmake -B build -DBUILD_SHARED_LIBS=ON
           cmake --build build --config Release
 
-      - name: Upload Build Artifact
+      - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: binaries-${{ matrix.os }}
@@ -54,7 +48,7 @@ jobs:
   build-windows-mingw:
     runs-on: windows-latest
     steps:
-      - name: Checkout Source Code
+      - name: Checkout source code
         uses: actions/checkout@v3
 
       - name: Install MinGW
@@ -65,7 +59,7 @@ jobs:
           cmake -G "MinGW Makefiles" -B build-mingw -DBUILD_SHARED_LIBS=ON
           cmake --build build-mingw --config Release
 
-      - name: Upload Windows MinGW Build
+      - name: Upload Windows MinGW Build Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: windows-mingw-binaries
@@ -76,15 +70,15 @@ jobs:
   release:
     needs: [build, build-windows-mingw]
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v')
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout source code
+        uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Needed for proper changelog generation
-      
-      - name: Download All Build Artifacts
+          fetch-depth: 0  # Needed for complete git history
+
+      - name: Download Build Artifacts
         uses: actions/download-artifact@v4
         with:
           path: artifacts
@@ -118,21 +112,33 @@ jobs:
         with:
           files: |
             artifacts/binaries-ubuntu-latest/libdl_c_iso8583.so
+            artifacts/binaries-ubuntu-latest/libdl_c_common.so
             artifacts/binaries-macos-latest/libdl_c_iso8583.dylib
+            artifacts/binaries-macos-latest/libdl_c_common.dylib
             artifacts/binaries-windows-latest/Release/dl_c_iso8583.dll
+            artifacts/binaries-windows-latest/Release/dl_c_common.dll
             artifacts/windows-mingw-binaries/libdl_c_iso8583.dll
+            artifacts/windows-mingw-binaries/libdl_c_common.dll
           draft: true
           tag_name: ${{ github.ref }}
           name: "Release ${{ env.VERSION }}"
           fail_on_unmatched_files: true
           body: |
             ## Release ${{ env.VERSION }}
-            
+
             ### Changelog
             ${{ env.CHANGELOG }}
-            
+
             ### Artifacts
-            - Linux: `libdl_c_iso8583.so`
-            - MacOS: `libdl_c_iso8583.dylib`
-            - Windows (MSVC): `dl_c_iso8583.dll`
-            - Windows (MinGW): `libdl_c_iso8583.dll`
+            - **Linux:**
+              - `libdl_c_iso8583.so`
+              - `libdl_c_common.so`
+            - **macOS:**
+              - `libdl_c_iso8583.dylib`
+              - `libdl_c_common.dylib`
+            - **Windows (MSVC):**
+              - `dl_c_iso8583.dll`
+              - `dl_c_common.dll`
+            - **Windows (MinGW):**
+              - `libdl_c_iso8583.dll`
+              - `libdl_c_common.dll`
