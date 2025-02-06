@@ -77,6 +77,6 @@ I've add cmake build file. to use it just type:
         $ cmake ..
         $ make
 
-## Notes by [homezz](https://github.com/holmezz/)
+## Notes by [holmezz](https://github.com/holmezz/)
 
 Providing pre-compiled shared lib versions for some platforms.
